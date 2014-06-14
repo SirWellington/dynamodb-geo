@@ -128,6 +128,11 @@ public class S2Manager {
 
 		String geohashString = String.valueOf(geohash);
 		long denominator = (long) Math.pow(10, geohashString.length() - hashKeyLength);
-		return geohash / denominator;
+        if(denominator == 0)         {
+            return geohash;
+        }
+        else {
+            return geohash / denominator;
+        }
 	}
 }
