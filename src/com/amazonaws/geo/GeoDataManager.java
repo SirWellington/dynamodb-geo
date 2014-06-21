@@ -400,10 +400,11 @@ public class GeoDataManager {
 	/**
 	 * Worker thread to query Amazon DynamoDB.
 	 * */
-	private class GeoQueryThread extends Thread {
-		private GeoQueryRequest geoQueryRequest;
-		private GeoQueryResult geoQueryResult;
-		private GeohashRange range;
+	private class GeoQueryThread implements Runnable {
+        
+		private final GeoQueryRequest geoQueryRequest;
+		private final GeoQueryResult geoQueryResult;
+		private final GeohashRange range;
 
 		public GeoQueryThread(GeoQueryRequest geoQueryRequest, GeoQueryResult geoQueryResult, GeohashRange range) {
 			this.geoQueryRequest = geoQueryRequest;
@@ -411,6 +412,7 @@ public class GeoDataManager {
 			this.range = range;
 		}
 
+        @Override
 		public void run() {
 			QueryRequest queryRequest = DynamoDBUtil.copyQueryRequest(geoQueryRequest.getQueryRequest());
 			long hashKey = S2Manager.generateHashKey(range.getRangeMin(), config.getHashKeyLength());
@@ -418,7 +420,7 @@ public class GeoDataManager {
 			List<QueryResult> queryResults = dynamoDBManager.queryGeohash(queryRequest, hashKey, range);
 
 			for (QueryResult queryResult : queryResults) {
-				if (isInterrupted()) {
+				if (Thread.currentThread().isInterrupted()) {
 					return;
 				}
 
